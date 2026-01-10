@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nunmai Technology</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Quicksand:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root { 
+            --primary: #00188F; 
+            --accent: #EC008C; 
+            --header-height: 80px; 
+            --bg-main: #ffffff; 
+            --text-main: #020617; 
+            --text-secondary: #64748b; 
+            --header-bg: rgba(255, 255, 255, 0.85); 
+            --card-border: rgba(0, 0, 0, 0.08);
+            --dot-color: #cbd5e1;
+        }
+
+        [data-theme="dark"] {
+            --bg-main: #020617; 
+            --text-main: #ffffff; 
+            --text-secondary: #94a3b8; 
+            --header-bg: rgba(2, 6, 23, 0.85); 
+            --card-border: rgba(255, 255, 255, 0.1);
+            --dot-color: #334155;
+        }
+
+        /* Core Layout */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-main);
+            background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
+            background-size: 30px 30px; 
+            transition: background 0.4s ease;
+            overflow-x: hidden;
+        }
+
+        /* Hide scrollbars globally while preserving scrolling (works across browsers) */
+        html, body { scrollbar-width: none; -ms-overflow-style: none; }
+        html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
+
+        /* Utility (kept) to toggle hiding explicitly if needed */
+        html.hide-scrollbar, body.hide-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+        html.hide-scrollbar::-webkit-scrollbar, body.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* Locking Logic: Initial state is locked to hero height */
+        body.is-locked {
+            height: 100vh;
+            overflow-y: hidden;
+        }
+
+        /* Header Navigation */
+        header { 
+            position: fixed; top: 0; width: 100%; height: var(--header-height); 
+            z-index: 1100; background: var(--header-bg); backdrop-filter: blur(20px); 
+            border-bottom: 1px solid var(--card-border); display: flex; align-items: center; 
+        }
+        .header-container { width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .logo { 
+            font-family: 'Quicksand', sans-serif; font-weight: 900; font-size: 1.8rem; 
+            text-decoration: none; background: linear-gradient(90deg, #2472fc,#8711c1);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        /* Nav layout and link underline */
+        .nav-links-wrapper { display: flex; align-items: center; gap: 28px; }
+        .nav-link {
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-decoration: none;
+            padding: 4px 6px;
+            position: relative;
+            z-index: 2;
+            transition: color 0.28s ease, transform 0.28s ease;
+        }
+        .nav-link:hover, .nav-link.active { color: var(--text-main); }
+        .nav-link:hover { transform: translateY(-1px); }
+
+        /* Per-link underline handled by ::after (closer to text) */
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            transform-origin: center;
+            bottom: -4px;
+            height: 3px;
+            width: calc(100% - 8px);
+            background: linear-gradient(90deg, #2472fc, #8711c1);
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(36,114,252,0.15);
+            transition: transform 0.36s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+        .nav-link:hover::after, .nav-link.active::after { transform: translateX(-50%) scaleX(1); }
+
+        /* Mobile menu styles */
+        .mobile-overlay {
+            position: fixed; top: var(--header-height); left: 0; width: 100%;
+            background: var(--header-bg); backdrop-filter: blur(20px);
+            height: 0; overflow: hidden; transition: height 0.3s ease; z-index: 1000; border-bottom: 1px solid var(--card-border);
+        }
+        .mobile-overlay.active { 
+            height: auto; /* occupy height of max content */
+            overflow-x: auto;
+        }
+        .mobile-menu-content { 
+            display: flex; 
+            flex-direction: row; /* horizontal layout */
+            justify-content: space-between; /* even gaps between items, fitting screen width */
+            align-items: center; 
+            padding: 20px; 
+        }
+        .mobile-nav-link { 
+            color: var(--text-main); 
+            text-decoration: none; 
+            font-weight: 600; 
+            padding: 16px 20px; 
+            border-radius: 12px; 
+            background: transparent; /* removed background */
+            transition: all 0.2s ease;
+            display: block;
+            text-align: center;
+            border: 1px solid transparent;
+            flex: 1; /* equal width distribution */
+            min-width: 0; /* allow shrinking */
+        }
+        .mobile-nav-link:hover { 
+            background: rgba(0,0,0,0.05); 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .mobile-nav-link:active { 
+            background: rgba(36, 114, 252, 0.15); 
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(36,114,252,0.2);
+        }
+        .mobile-nav-link.active { 
+            background: rgba(36, 114, 252, 0.08); 
+            color: #2472fc; 
+            border-color: rgba(36, 114, 252, 0.2);
+        }
+
+        @media (max-width: 767px) { .nav-link::after { display: none; } }
+
+        /* Shrink mobile navbar height for small devices to match service.html */
+        @media (max-width: 767px) {
+            .mobile-menu-content { padding: 10px 6px; gap: 8px; }
+            .mobile-nav-link { padding: 10px 14px; min-width: 72px; flex: 0 0 auto; font-size: 0.95rem; }
+            .mobile-overlay { border-bottom-width: 1px; }
+            .mode-toggle, .mobile-nav-toggle { width: 40px; height: 40px; }
+        }
+
+        /* Premium mobile tweaks: reduce global font-size and refine `.eco-section` for small screens */
+        @media (max-width: 600px) {
+            /* subtle global reduction to keep content compact and legible */
+            html { font-size: 14px; }
+
+            /* simplify background and reduce heavy padding for smaller screens */
+            .page-content { padding-top: 140px; padding-bottom: 60px; }
+
+            /* Eco section: tighter, cleaner, and touch-friendly */
+            .eco-section { margin-top: 70px; padding: 28px 16px; border-radius: 22px; background: linear-gradient(180deg,#081028 0%,#030414 100%); box-shadow: 0 12px 30px rgba(2,6,23,0.55); }
+            .eco-section .container { padding-left: 0; padding-right: 0; }
+            .eco-section .display-5 { font-size: 1.6rem; line-height: 1.12; }
+
+            /* Eco cards: stacked, roomy but compact */
+            .eco-card { padding: 18px; border-radius: 14px; }
+            .eco-card h4 { font-size: 1rem; gap: 8px; }
+            .eco-card p, .eco-card .small { font-size: 0.92rem; }
+
+            /* Capabilities grid: two columns for comfortable touch targets */
+            .capability-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .capability-card { padding: 10px; border-radius: 12px; }
+
+            /* Buttons and feature cards scaled down */
+            .btn-preeventz { padding: 10px 18px; font-size: 0.92rem; border-radius: 12px; }
+            .feature-card { padding: 20px; border-radius: 18px; }
+            .icon-circle { width: 46px; height: 46px; font-size: 1.1rem; }
+
+            /* Mobile menu layout: horizontal and scrollable for touch devices */
+            .mobile-menu-content { flex-direction: row; gap: 10px; align-items: center; overflow-x: auto; padding: 10px 6px; -webkit-overflow-scrolling: touch; }
+            .mobile-nav-link { padding: 12px 18px; border-radius: 10px; margin: 0; flex: 0 0 auto; white-space: nowrap; min-width: 84px; text-align: center; }
+
+            /* Minor heading and section tweaks */
+            .section-title { font-size: 1.6rem; letter-spacing: -0.4px; }
+        }
+
+        /* Hero Section */
+        .hero-section { 
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .main-title { 
+            font-size: clamp(2.5rem, 8vw, 5.5rem); 
+            font-weight: 800; 
+            letter-spacing: -2px; 
+            line-height: 1.1; 
+            margin-bottom: 1.5rem; 
+            color: var(--text-main);
+        }
+
+        .text-gradient { 
+            background: linear-gradient(to right, #2d3394, #d11e82); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+
+        .hero-lead {
+            color: var(--text-secondary);
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            max-width: 700px;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+
+        .btn-mission {
+            background-color: var(--text-main);
+            color: var(--bg-main);
+            padding: 16px 40px;
+            border-radius: 50px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: none;
+            display: inline-block;
+        }
+        .btn-mission:hover {
+            transform: translateY(-3px);
+            opacity: 0.9;
+            color: var(--bg-main);
+        }
+
+        /* Mission Section (visible by default) */
+        #mission {
+            display: block;
+            padding: 100px 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .mission-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 50px;
+        }
+        /* Card 1: Blue Glow */
+.card-tech:hover { 
+    background: rgba(36, 114, 252, 0.08); 
+    border-color: #2472fc;
+    box-shadow: 0 20px 40px rgba(36, 114, 252, 0.2);
+    transform: translateY(-10px);
+}
+
+/* Card 2: Indigo/Purple Glow */
+.card-integrity:hover { 
+    background: rgba(135, 17, 193, 0.08); 
+    border-color: #8711c1;
+    box-shadow: 0 20px 40px rgba(135, 17, 193, 0.2);
+    transform: translateY(-10px);
+}
+
+/* Card 3: Pink/Magenta Glow */
+.card-future:hover { 
+    background: rgba(236, 0, 140, 0.08); 
+    border-color: #EC008C;
+    box-shadow: 0 20px 40px rgba(236, 0, 140, 0.2);
+    transform: translateY(-10px);
+}
+
+        .mission-card {
+            background: var(--header-bg);
+            border: 1px solid var(--card-border);
+            padding: 40px;
+            border-radius: 24px;
+            backdrop-filter: blur(10px);
+            opacity: 1;
+            transform: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid var(--card-border); /* Starting state */
+        }
+
+        .mission-card.visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        .mission-card i {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            background: linear-gradient(90deg, #2472fc, #8711c1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mission-card h3 { font-weight: 800; color: var(--text-main); }
+        .mission-card p { color: var(--text-secondary); margin-bottom: 0; }
+
+        /* Dark Mode Toggles & Mobile Menu */
+        .mode-toggle, .mobile-nav-toggle {
+            background: var(--card-border); border: none; color: var(--text-main);
+            width: 42px; height: 42px; border-radius: 12px 12px 0 0; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .mobile-nav-toggle.active {
+            background: var(--text-main); color: var(--bg-main);
+        }
+
+
+
+        footer { display: block; padding: 40px 0; text-align: center; border-top: 1px solid var(--card-border); }
+        .footer-link { color: var(--text-secondary); text-decoration: none; margin: 0 10px; font-size: 0.85rem; }
+
+        /* Animations */
+        .reveal { opacity: 0; transform: translateY(20px); animation: fadeInUp 0.8s forwards; }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+
+<body data-theme="light">
+
+<header>
+    <div class="header-container">
+        <a href="index.html" class="logo">Nunmai</a>
+        <link rel="icon" type="image/x-icon" href="Gemini_Generated_Image_joa709joa709joa7.png">
+        <nav class="d-flex align-items-center position-relative">
+    <div class="d-none d-md-flex position-relative nav-links-wrapper">
+        <a class="nav-link active" href="index.html">Home</a>
+        <a class="nav-link" href="events.html">Events</a>
+        <a class="nav-link" href="service.html">Services</a>
+        <a class="nav-link" href="contact.html">Contact</a>
+    </div>
+
+    <button class="mode-toggle ms-3" id="themeBtn">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    <button class="mobile-nav-toggle d-md-none ms-2" id="mobileMenuBtn">
+        <i class="fas fa-bars"></i>
+    </button>
+</nav>
+    </div>
+
+    <div class="mobile-overlay" id="mobileOverlay">
+        <div class="mobile-menu-content">
+            <a class="mobile-nav-link" href="index.html">Home</a>
+            <a class="mobile-nav-link" href="events.html">Events</a>
+            <a class="mobile-nav-link" href="service.html">Services</a>
+            <a class="mobile-nav-link" href="contact.html">Contact</a>
+        </div>
+    </div>
+</header>
+
+<main class="hero-section">
+    <div class="reveal">
+        <h1 class="main-title">Future <span class="text-gradient">Experiences</span><br>Built with Precision.</h1>
+        <p class="hero-lead">
+            Nunmai Technology engineers the high-performance digital backbone for global events that demand zero latency.
+        </p>
+        <a href="#mission" class="btn-mission" id="exploreBtn">Explore Our Mission</a>
+    </div>
+</main>
+
+<section id="mission">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="main-title" style="font-size: clamp(2rem, 5vw, 3.5rem);">Our <span class="text-gradient">Mission</span></h2>
+            <p class="hero-lead mx-auto">Architecting the invisible backbone of the world's most critical digital experiences.</p>
+        </div>
+
+        <div class="mission-grid">
+    <div class="mission-card card-tech">
+        <i class="fas fa-microchip"></i>
+        <h3>Technical Excellence</h3>
+        <p>High-tier hardware integration for events that cannot afford a single second of latency or downtime.</p>
+    </div>
+
+    <div class="mission-card card-integrity">
+        <i class="fas fa-shield-halved"></i>
+        <h3>Absolute Integrity</h3>
+        <p>Shielded by enterprise-grade security protocols and full-stack redundant systems.</p>
+    </div>
+
+    <div class="mission-card card-future">
+        <i class="fas fa-rocket"></i>
+        <h3>Future-Proofing</h3>
+        <p>Engineering scalable environments that adapt to the evolving demands of Web3, AI, and global collaboration.</p>
+    </div>
+</div>
+    </div>
+</section>
+
+<footer id="mainFooter">
+    <p class="text-secondary small mb-2">&copy; 2026 Nunmai Technologies Private Limited. All Rights Reserved.</p>
+    <div>
+        <a href="#" class="footer-link">Terms & Conditions</a>
+        <a href="#" class="footer-link">Privacy Policy
+        </a>
+    </div>
+</footer>
+
+<script>
+    // Theme Logic
+    const themeBtn = document.getElementById('themeBtn');
+    const applyTheme = (theme) => {
+        document.body.setAttribute('data-theme', theme);
+        themeBtn.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        localStorage.setItem('nunmai-theme', theme);
+    };
+    themeBtn.addEventListener('click', () => {
+        const current = document.body.getAttribute('data-theme');
+        applyTheme(current === 'light' ? 'dark' : 'light');
+    });
+    applyTheme(localStorage.getItem('nunmai-theme') || 'light');
+
+    // Mobile Menu Logic
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    const overlay = document.getElementById('mobileOverlay');
+    mobileBtn.addEventListener('click', () => {
+        overlay.classList.toggle('active');
+        mobileBtn.classList.toggle('active');
+        mobileBtn.innerHTML = overlay.classList.contains('active') ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+    });
+    document.querySelectorAll('.mobile-nav-link').forEach(l => l.addEventListener('click', () => {
+        overlay.classList.remove('active');
+        mobileBtn.classList.remove('active');
+        mobileBtn.innerHTML = '<i class="fas fa-bars"></i>';
+    }));
+
+    // Content Unlock Logic
+    const exploreBtn = document.getElementById('exploreBtn');
+    const missionSec = document.getElementById('mission');
+    const footer = document.getElementById('mainFooter');
+
+    exploreBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // 1. Show content
+        missionSec.style.display = 'block';
+        footer.style.display = 'block';
+        
+        // 2. Unlock scroll
+        document.body.classList.remove('is-locked');
+        // hide visual scrollbars but keep scrolling functional (apply to html + body)
+        document.documentElement.classList.add('hide-scrollbar');
+        document.body.classList.add('hide-scrollbar');
+
+        // Remove hidden scrollbar when user interacts (wheel/touch/keyboard)
+        const removeHideScrollbar = () => {
+            document.documentElement.classList.remove('hide-scrollbar');
+            document.body.classList.remove('hide-scrollbar');
+        };
+        window.addEventListener('wheel', removeHideScrollbar, { once: true });
+        window.addEventListener('touchstart', removeHideScrollbar, { once: true });
+        window.addEventListener('keydown', removeHideScrollbar, { once: true });
+        
+        // 3. Scroll
+        window.scrollTo({
+            top: missionSec.offsetTop - 80,
+            behavior: 'smooth'
+        });
+
+        // 4. Trigger Card Observer
+        initObserver();
+    });
+
+    // Intersection Observer for Cards
+    function initObserver() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, i) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, i * 150);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.mission-card').forEach(card => observer.observe(card));
+    }
+
+    // Reset on refresh
+    window.onbeforeunload = function () {
+        window.scrollTo(0, 0);
+    };
+document.addEventListener('DOMContentLoaded', () => {
+    // Navigation underline is pure CSS now (per-link ::after). JS cursor removed.
+});
+</script>
+</body>
+</html>
